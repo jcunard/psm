@@ -52,3 +52,9 @@ Feature: Data Coverage Checks
     Given I am on the individual provider practice info page
     When I enter a valid private practice
     Then the practice information is accepted
+
+  Scenario: Completes an application
+    Given I am on the individual provider statement page
+    When I enter my provider statement
+    And I submit the enrollment
+    Then the enrollment is successfully submitted
