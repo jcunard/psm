@@ -150,14 +150,8 @@ public abstract class AbstractPracticeFormBinder extends BaseFormBinder {
         attr(mv, "npi", practice.getGroupNPI());
 
         AddressType address = XMLUtility.nsGetAddress(practice);
-        String line1 = address.getAddressLine1();
-        String line2 = address.getAddressLine2();
-        if (Util.isBlank(line1)) {
-            line1 = line2;
-            line2 = null;
-        }
-        attr(mv, "addressLine1", line1);
-        attr(mv, "addressLine2", line2);
+        attr(mv, "addressLine1", address.getAddressLine1());
+        attr(mv, "addressLine2", address.getAddressLine2());
         attr(mv, "city", address.getCity());
         attr(mv, "state", address.getState());
         attr(mv, "zip", address.getZipCode());
@@ -189,12 +183,6 @@ public abstract class AbstractPracticeFormBinder extends BaseFormBinder {
         List<StatusMessageType> ruleErrors = messages.getStatusMessage();
         List<StatusMessageType> caughtMessages = new ArrayList<StatusMessageType>();
 
-        PracticeInformationType practice = XMLUtility.nsGetPracticeInformation(enrollment);
-        AddressType xAddress = XMLUtility.nsGetAddress(practice);
-        boolean switchAddressLineFields = false;
-        if (Util.isBlank(xAddress.getAddressLine1())) {
-            switchAddressLineFields = true;
-        }
         synchronized (ruleErrors) {
             for (StatusMessageType ruleError : ruleErrors) {
                 int count = errors.size();
@@ -214,9 +202,9 @@ public abstract class AbstractPracticeFormBinder extends BaseFormBinder {
                     String[] addressLines = new String[]{"addressLine1", "addressLine2"};
                     errors.add(createError(addressLines, ruleError.getMessage()));
                 } else if (path.equals(PRACTICE_INFO + "ContactInformation/Address/AddressLine1")) {
-                    errors.add(createError(switchAddressLineFields ? "addressLine2" : "addressLine1", ruleError.getMessage()));
+                    errors.add(createError("addressLine1", ruleError.getMessage()));
                 } else if (path.equals(PRACTICE_INFO + "ContactInformation/Address/AddressLine2")) {
-                    errors.add(createError(switchAddressLineFields ? "addressLine1" : "addressLine2", ruleError.getMessage()));
+                    errors.add(createError("addressLine2", ruleError.getMessage()));
                 } else if (path.equals(PRACTICE_INFO + "ContactInformation/Address/City")) {
                     errors.add(createError("city", ruleError.getMessage()));
                 } else if (path.equals(PRACTICE_INFO + "ContactInformation/Address/State")) {

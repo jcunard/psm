@@ -181,14 +181,8 @@ public class OrganizationInfoFormBinder extends BaseFormBinder implements FormBi
         ContactInformationType contact = XMLUtility.nsGetContactInformation(org);
         if (contact.getAddress() != null) {
             AddressType address = contact.getAddress();
-            String line1 = address.getAddressLine1();
-            String line2 = address.getAddressLine2();
-            if (Util.isBlank(line1)) {
-                line1 = line2;
-                line2 = null;
-            }
-            attr(mv, "addressLine1", line1);
-            attr(mv, "addressLine2", line2);
+            attr(mv, "addressLine1", address.getAddressLine1());
+            attr(mv, "addressLine2", address.getAddressLine2());
             attr(mv, "city", address.getCity());
             attr(mv, "state", address.getState());
             attr(mv, "zip", address.getZipCode());
@@ -216,15 +210,9 @@ public class OrganizationInfoFormBinder extends BaseFormBinder implements FormBi
                 if (org.getBillingAddressIndex() != null) {
                     if (alternateAddresses.getAddress().size() >= org.getBillingAddressIndex()) {
                         AddressType billingAddress = alternateAddresses.getAddress().get(org.getBillingAddressIndex() - 1);
-                        String line1 = billingAddress.getAddressLine1();
-                        String line2 = billingAddress.getAddressLine2();
-                        if (Util.isBlank(line1)) {
-                            line1 = line2;
-                            line2 = null;
-                        }
                         attr(mv, "billingAttention", billingAddress.getAttentionTo());
-                        attr(mv, "billingAddressLine1", line1);
-                        attr(mv, "billingAddressLine2", line2);
+                        attr(mv, "billingAddressLine1", billingAddress.getAddressLine1());
+                        attr(mv, "billingAddressLine2", billingAddress.getAddressLine2());
                         attr(mv, "billingCity", billingAddress.getCity());
                         attr(mv, "billingState", billingAddress.getState());
                         attr(mv, "billingZip", billingAddress.getZipCode());
@@ -239,15 +227,9 @@ public class OrganizationInfoFormBinder extends BaseFormBinder implements FormBi
                 if (org.getTen99AddressIndex() != null) {
                     if (alternateAddresses.getAddress().size() >= org.getTen99AddressIndex()) {
                         AddressType ten99Address = alternateAddresses.getAddress().get(org.getTen99AddressIndex() - 1);
-                        String line1 = ten99Address.getAddressLine1();
-                        String line2 = ten99Address.getAddressLine2();
-                        if (Util.isBlank(line1)) {
-                            line1 = line2;
-                            line2 = null;
-                        }
                         attr(mv, "ten99Attention", ten99Address.getAttentionTo());
-                        attr(mv, "ten99AddressLine1", line1);
-                        attr(mv, "ten99AddressLine2", line2);
+                        attr(mv, "ten99AddressLine1", ten99Address.getAddressLine1());
+                        attr(mv, "ten99AddressLine2", ten99Address.getAddressLine2());
                         attr(mv, "ten99City", ten99Address.getCity());
                         attr(mv, "ten99State", ten99Address.getState());
                         attr(mv, "ten99Zip", ten99Address.getZipCode());
@@ -291,14 +273,6 @@ public class OrganizationInfoFormBinder extends BaseFormBinder implements FormBi
         List<StatusMessageType> caughtMessages = new ArrayList<StatusMessageType>();
 
         OrganizationApplicantType org = XMLUtility.nsGetOrganization(enrollment);
-        AlternateAddressesType alternateAddresses = enrollment.getProviderInformation().getAlternateAddresses();
-
-        boolean switchAddressLineFields = false;
-        ContactInformationType contact = XMLUtility.nsGetContactInformation(org);
-        AddressType addressType = contact.getAddress();
-        if (addressType == null || Util.isBlank(addressType.getAddressLine1())) {
-            switchAddressLineFields = true;
-        }
 
         synchronized (ruleErrors) {
             for (StatusMessageType ruleError : ruleErrors) {
@@ -325,9 +299,9 @@ public class OrganizationInfoFormBinder extends BaseFormBinder implements FormBi
                 } else if (path.equals("/ProviderInformation/ApplicantInformation/OrganizationInformation/Name")) {
                     errors.add(createError("name", ruleError.getMessage()));
                 } else if (path.equals("/ProviderInformation/ApplicantInformation/OrganizationInformation/ContactInformation/Address/AddressLine1")) {
-                    errors.add(createError(switchAddressLineFields? "addressLine2" : "addressLine1", ruleError.getMessage()));
+                    errors.add(createError("addressLine1", ruleError.getMessage()));
                 } else if (path.equals("/ProviderInformation/ApplicantInformation/OrganizationInformation/ContactInformation/Address/AddressLine2")) {
-                    errors.add(createError(switchAddressLineFields? "addressLine1" : "addressLine2", ruleError.getMessage()));
+                    errors.add(createError("addressLine2", ruleError.getMessage()));
                 } else if (path.equals("/ProviderInformation/ApplicantInformation/OrganizationInformation/ContactInformation/Address/City")) {
                     errors.add(createError("city", ruleError.getMessage()));
                 } else if (path.equals("/ProviderInformation/ApplicantInformation/OrganizationInformation/ContactInformation/Address/State")) {
@@ -351,12 +325,12 @@ public class OrganizationInfoFormBinder extends BaseFormBinder implements FormBi
                     if (addressIndex != null) {
                         if (org.getTen99AddressIndex() != null) {
                             if (org.getTen99AddressIndex() - 1 == addressIndex) {
-                                errors.add(resolveAddressFieldError(alternateAddresses.getAddress().get(addressIndex), "ten99", path, ruleError));
+                                errors.add(resolveAddressFieldError("ten99", path, ruleError));
                             }
                         }
                         if (org.getBillingAddressIndex() != null) {
                             if (org.getBillingAddressIndex() - 1 == addressIndex) {
-                                errors.add(resolveAddressFieldError(alternateAddresses.getAddress().get(addressIndex), "billing", path, ruleError));
+                                errors.add(resolveAddressFieldError("billing", path, ruleError));
                             }
                         }
                     }
@@ -374,15 +348,15 @@ public class OrganizationInfoFormBinder extends BaseFormBinder implements FormBi
         return errors.isEmpty() ? NO_ERRORS : errors;
     }
 
-    private FormError resolveAddressFieldError(AddressType addressType, String prefix, String path, StatusMessageType ruleError) {
-        boolean switchAddressLineFields = false;
-        if (addressType == null || Util.isBlank(addressType.getAddressLine1())) {
-            switchAddressLineFields = true;
-        }
+    private FormError resolveAddressFieldError(
+            String prefix,
+            String path,
+            StatusMessageType ruleError
+    ) {
         if (path.endsWith("/AddressLine1")) {
-            return createError(switchAddressLineFields ? prefix + "AddressLine2" : prefix + "AddressLine1", ruleError.getMessage());
+            return createError(prefix + "AddressLine1", ruleError.getMessage());
         } else if (path.endsWith("/AddressLine2")) {
-            return createError(switchAddressLineFields ? prefix + "AddressLine1" : prefix + "AddressLine2", ruleError.getMessage());
+            return createError(prefix + "AddressLine2", ruleError.getMessage());
         } else if (path.endsWith("/City")) {
             return createError(prefix + "City", ruleError.getMessage());
         } else if (path.endsWith("/State")) {
@@ -683,14 +657,8 @@ public class OrganizationInfoFormBinder extends BaseFormBinder implements FormBi
      */
     private AddressType readBillingAddress(HttpServletRequest request) {
         AddressType address = new AddressType();
-        String line1 = param(request, "billingAddressLine1");
-        String line2 = param(request, "billingAddressLine2");
-        if (Util.isBlank(line2)) { // prioritize line 2 usage
-            line2 = line1;
-            line1 = null;
-        }
-        address.setAddressLine1(line1);
-        address.setAddressLine2(line2);
+        address.setAddressLine1(param(request, "billingAddressLine1"));
+        address.setAddressLine2(param(request, "billingAddressLine2"));
         address.setAttentionTo(param(request, "billingAttention"));
         address.setCity(param(request, "billingCity"));
         address.setState(param(request, "billingState"));
@@ -707,14 +675,8 @@ public class OrganizationInfoFormBinder extends BaseFormBinder implements FormBi
      */
     private AddressType readTen99Address(HttpServletRequest request) {
         AddressType address = new AddressType();
-        String line1 = param(request, "ten99AddressLine1");
-        String line2 = param(request, "ten99AddressLine2");
-        if (Util.isBlank(line2)) { // prioritize line 2 usage
-            line2 = line1;
-            line1 = null;
-        }
-        address.setAddressLine1(line1);
-        address.setAddressLine2(line2);
+        address.setAddressLine1(param(request, "ten99AddressLine1"));
+        address.setAddressLine2(param(request, "ten99AddressLine2"));
         address.setAttentionTo(param(request, "ten99Attention"));
         address.setCity(param(request, "ten99City"));
         address.setState(param(request, "ten99State"));

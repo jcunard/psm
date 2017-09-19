@@ -469,14 +469,8 @@ public abstract class BaseFormBinder implements FormBinder {
      */
     protected AddressType readPrimaryAddress(HttpServletRequest request) {
         AddressType address = new AddressType();
-        String line1 = param(request, "addressLine1");
-        String line2 = param(request, "addressLine2");
-        if (Util.isBlank(line2)) { // prioritize line 2 usage
-            line2 = line1;
-            line1 = null;
-        }
-        address.setAddressLine1(line1);
-        address.setAddressLine2(line2);
+        address.setAddressLine1(param(request, "addressLine1"));
+        address.setAddressLine2(param(request, "addressLine2"));
         address.setCity(param(request, "city"));
         address.setState(param(request, "state"));
         address.setZipCode(param(request, "zip"));

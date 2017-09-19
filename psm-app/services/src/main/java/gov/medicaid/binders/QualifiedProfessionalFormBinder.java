@@ -231,14 +231,8 @@ public class QualifiedProfessionalFormBinder extends BaseFormBinder {
             if (qp.getContactInformation() != null) {
                 AddressType address = qp.getContactInformation().getAddress();
                 if (address != null) {
-                    String line1 = address.getAddressLine1();
-                    String line2 = address.getAddressLine2();
-                    if (Util.isBlank(line1)) {
-                        line1 = line2;
-                        line2 = null;
-                    }
-                    attr(mv, "addressLine1", qpIndex, line1);
-                    attr(mv, "addressLine2", qpIndex, line2);
+                    attr(mv, "addressLine1", qpIndex, address.getAddressLine1());
+                    attr(mv, "addressLine2", qpIndex, address.getAddressLine2());
                     attr(mv, "city", qpIndex, address.getCity());
                     attr(mv, "state", qpIndex, address.getState());
                     attr(mv, "zip", qpIndex, address.getZipCode());
@@ -587,14 +581,8 @@ public class QualifiedProfessionalFormBinder extends BaseFormBinder {
      */
     protected AddressType readQPAddress(HttpServletRequest request, int index) {
         AddressType address = new AddressType();
-        String line1 = param(request, "addressLine1", index);
-        String line2 = param(request, "addressLine2", index);
-        if (Util.isBlank(line2)) { // prioritize line 2 usage
-            line2 = line1;
-            line1 = null;
-        }
-        address.setAddressLine1(line1);
-        address.setAddressLine2(line2);
+        address.setAddressLine1(param(request, "addressLine1", index));
+        address.setAddressLine2(param(request, "addressLine2", index));
         address.setCity(param(request, "city", index));
         address.setState(param(request, "state", index));
         address.setZipCode(param(request, "zip", index));

@@ -136,14 +136,8 @@ public class PrivatePracticeFormBinder extends AbstractPracticeFormBinder {
             
             AddressType billingAddress = practice.getBillingAddress();
             if (billingAddress != null && !"Y".equals(practice.getBillingSameAsPrimary())) {
-                String line1 = billingAddress.getAddressLine1();
-                String line2 = billingAddress.getAddressLine2();
-                if (Util.isBlank(line1)) {
-                    line1 = line2;
-                    line2 = null;
-                }
-                attr(mv, "billingAddressLine1", line1);
-                attr(mv, "billingAddressLine2", line2);
+                attr(mv, "billingAddressLine1", billingAddress.getAddressLine1());
+                attr(mv, "billingAddressLine2", billingAddress.getAddressLine2());
                 attr(mv, "billingCity", billingAddress.getCity());
                 attr(mv, "billingState", billingAddress.getState());
                 attr(mv, "billingZip", billingAddress.getZipCode());
@@ -173,8 +167,6 @@ public class PrivatePracticeFormBinder extends AbstractPracticeFormBinder {
         List<StatusMessageType> ruleErrors = messages.getStatusMessage();
         List<StatusMessageType> caughtMessages = new ArrayList<StatusMessageType>();
 
-        PracticeInformationType practice = XMLUtility.nsGetPracticeInformation(enrollment);
-
         synchronized (ruleErrors) {
             for (StatusMessageType ruleError : ruleErrors) {
                 int count = errors.size();
@@ -183,20 +175,15 @@ public class PrivatePracticeFormBinder extends AbstractPracticeFormBinder {
                 if (path == null) {
                     continue;
                 }
-                
-                boolean switchBillingAddressLines = false;
-                if (practice.getBillingAddress() == null || Util.isBlank(practice.getBillingAddress().getAddressLine1())) {
-                    switchBillingAddressLines = true;
-                }
 
                 if (path.equals(PRACTICE_INFO + "EffectiveDate")) {
                     errors.add(createError("effectiveDate", ruleError.getMessage()));
                 } else if (path.equals(PRACTICE_INFO + "BillingAddress")) {
                     errors.add(createError(new String[]{"billingAddressLine1", "billingAddressLine2"}, ruleError.getMessage()));
                 } else if (path.equals(PRACTICE_INFO + "BillingAddress/AddressLine1")) {
-                    errors.add(createError(switchBillingAddressLines ? "billingAddressLine2" : "billingAddressLine1", ruleError.getMessage()));
+                    errors.add(createError("billingAddressLine1", ruleError.getMessage()));
                 } else if (path.equals(PRACTICE_INFO + "BillingAddress/AddressLine2")) {
-                    errors.add(createError(switchBillingAddressLines ? "billingAddressLine1" :"billingAddressLine2", ruleError.getMessage()));
+                    errors.add(createError("billingAddressLine2", ruleError.getMessage()));
                 } else if (path.equals(PRACTICE_INFO + "BillingAddress/City")) {
                     errors.add(createError("billingCity", ruleError.getMessage()));
                 } else if (path.equals(PRACTICE_INFO + "BillingAddress/State")) {
@@ -342,14 +329,8 @@ public class PrivatePracticeFormBinder extends AbstractPracticeFormBinder {
      */
     private AddressType readBillingAddress(HttpServletRequest request) {
         AddressType address = new AddressType();
-        String line1 = param(request, "billingAddressLine1");
-        String line2 = param(request, "billingAddressLine2");
-        if (Util.isBlank(line2)) { // prioritize line 2 usage
-            line2 = line1;
-            line1 = null;
-        }
-        address.setAddressLine1(line1);
-        address.setAddressLine2(line2);
+        address.setAddressLine1(param(request, "billingAddressLine1"));
+        address.setAddressLine2(param(request, "billingAddressLine2"));
         address.setCity(param(request, "billingCity"));
         address.setState(param(request, "billingState"));
         address.setZipCode(param(request, "billingZip"));

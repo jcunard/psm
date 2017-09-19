@@ -125,14 +125,8 @@ public class IndividualPCAInfoFormBinder extends BaseFormBinder implements FormB
         ContactInformationType contact = XMLUtility.nsGetContactInformation(individual);
         if (contact.getAddress() != null) {
             AddressType address = contact.getAddress();
-            String line1 = address.getAddressLine1();
-            String line2 = address.getAddressLine2();
-            if (Util.isBlank(line1)) {
-                line1 = line2;
-                line2 = null;
-            }
-            attr(mv, "addressLine1", line1);
-            attr(mv, "addressLine2", line2);
+            attr(mv, "addressLine1", address.getAddressLine1());
+            attr(mv, "addressLine2", address.getAddressLine2());
             attr(mv, "city", address.getCity());
             attr(mv, "state", address.getState());
             attr(mv, "zip", address.getZipCode());
@@ -158,13 +152,6 @@ public class IndividualPCAInfoFormBinder extends BaseFormBinder implements FormB
 
         List<StatusMessageType> ruleErrors = messages.getStatusMessage();
         List<StatusMessageType> caughtMessages = new ArrayList<StatusMessageType>();
-        
-        IndividualApplicantType individual = XMLUtility.nsGetIndividual(enrollment);
-        ContactInformationType contact = XMLUtility.nsGetContactInformation(individual);
-        boolean switchAddressLines = false;
-        if (contact.getAddress() == null || Util.isBlank(contact.getAddress().getAddressLine1())) {
-            switchAddressLines = true;;
-        }
 
         synchronized (ruleErrors) {
             for (StatusMessageType ruleError : ruleErrors) {
@@ -192,9 +179,9 @@ public class IndividualPCAInfoFormBinder extends BaseFormBinder implements FormB
                 } else if (path.equals(PERSONAL_INFO + "ContactInformation/Address")) {
                     errors.add(createError(new String[] {"addressLine1", "addressLine2"}, ruleError.getMessage()));
                 } else if (path.equals(PERSONAL_INFO + "ContactInformation/Address/AddressLine1")) {
-                    errors.add(createError(switchAddressLines ? "addressLine2" : "addressLine1", ruleError.getMessage()));
+                    errors.add(createError("addressLine1", ruleError.getMessage()));
                 } else if (path.equals(PERSONAL_INFO + "ContactInformation/Address/AddressLine2")) {
-                    errors.add(createError(switchAddressLines ? "addressLine1" : "addressLine2", ruleError.getMessage()));
+                    errors.add(createError("addressLine2", ruleError.getMessage()));
                 } else if (path.equals(PERSONAL_INFO + "ContactInformation/Address/City")) {
                     errors.add(createError("city", ruleError.getMessage()));
                 } else if (path.equals(PERSONAL_INFO + "ContactInformation/Address/State")) {

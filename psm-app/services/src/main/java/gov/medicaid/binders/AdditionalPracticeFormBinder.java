@@ -104,14 +104,8 @@ public class AdditionalPracticeFormBinder extends BaseFormBinder {
                 }
 
                 AddressType address = new AddressType();
-                String line2 = param(request, "addressLine2", i);
-                String line1 = param(request, "addressLine1", i);
-                if (Util.isBlank(line2)) {
-                    line2 = line1;
-                    line1 = null;
-                }
-                address.setAddressLine1(line1);
-                address.setAddressLine2(line2);
+                address.setAddressLine1(param(request, "addressLine1", i));
+                address.setAddressLine2(param(request, "addressLine2", i));
                 address.setCity(param(request, "city", i));
                 address.setState(param(request, "state", i));
                 address.setZipCode(param(request, "zip", i));
@@ -195,14 +189,8 @@ public class AdditionalPracticeFormBinder extends BaseFormBinder {
 
             AddressType address = location.getAddress();
             if (address != null) {
-                String line1 = address.getAddressLine1();
-                String line2 = address.getAddressLine2();
-                if (Util.isBlank(line1)) {
-                    line1 = line2;
-                    line2 = null;
-                }
-                attr(mv, "addressLine1", i, line1);
-                attr(mv, "addressLine2", i, line2);
+                attr(mv, "addressLine1", i, address.getAddressLine1());
+                attr(mv, "addressLine2", i, address.getAddressLine2());
                 attr(mv, "city", i, address.getCity());
                 attr(mv, "state", i, address.getState());
                 attr(mv, "zip", i, address.getZipCode());
@@ -225,9 +213,6 @@ public class AdditionalPracticeFormBinder extends BaseFormBinder {
     protected List<FormError> selectErrors(EnrollmentType enrollment, StatusMessagesType messages) {
         List<FormError> errors = new ArrayList<FormError>();
 
-        PracticeInformationType practice = XMLUtility.nsGetPracticeInformation(enrollment);
-        AdditionalPracticeLocationsType locations = XMLUtility.nsGetOtherLocations(practice);
-
         List<StatusMessageType> ruleErrors = messages.getStatusMessage();
         List<StatusMessageType> caughtMessages = new ArrayList<StatusMessageType>();
         synchronized (ruleErrors) {
@@ -239,7 +224,7 @@ public class AdditionalPracticeFormBinder extends BaseFormBinder {
                 }
 
                 if (path.startsWith(LOCATION_PATH)) {
-                    FormError error = resolveFieldError(locations, ruleError);
+                    FormError error = resolveFieldError(ruleError);
                     errors.add(error);
                 }
                 if (errors.size() > count) { // caught
@@ -258,24 +243,17 @@ public class AdditionalPracticeFormBinder extends BaseFormBinder {
 
     /**
      * Resolves the specific license that is causing the error from the license list.
-     * @param locations the additional locations
      * @param ruleError the error to resolve
      * @return the resolved error
      */
-    private FormError resolveFieldError(AdditionalPracticeLocationsType locations, StatusMessageType ruleError) {
+    private FormError resolveFieldError(StatusMessageType ruleError) {
         String path = ruleError.getRelatedElementPath();
         Integer index = resolveIndex(path);
 
         String message = ruleError.getMessage();
         if (index != null) {
-            PracticeLocationType location = locations.getPracticeLocation().get(index);
             message = ruleError.getMessage() + "(Group #" + (index + 1) + ")";
-            
-            boolean switchAddressLines = false;
-            if (location.getAddress() != null || Util.isBlank(location.getAddress().getAddressLine1())) {
-                // since line 2 is populated instead of line 1 by default
-                switchAddressLines = true;
-            }
+
             if (path.endsWith("Address")) {
                 return createError(new String[]{"addressLine2", "addressLine1"}, index, message);
             } else if (path.endsWith("EffectiveDate")) {
@@ -285,9 +263,9 @@ public class AdditionalPracticeFormBinder extends BaseFormBinder {
             } else if (path.endsWith("GroupNPI")) {
                 return createError("npi", index, message);
             } else if (path.endsWith("AddressLine1")) {
-                return createError(switchAddressLines ? "addressLine1" : "addressLine2", index, message);
+                return createError("addressLine2", index, message);
             } else if (path.endsWith("AddressLine2")) {
-                return createError(switchAddressLines ? "addressLine2" : "addressLine1", index, message);
+                return createError("addressLine1", index, message);
             } else if (path.endsWith("City")) {
                 return createError("city", index, message);
             } else if (path.endsWith("State")) {
