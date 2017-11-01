@@ -167,8 +167,8 @@ public class IndividualSummaryPage extends PageObject {
         return textOf("#fiscalYearEnd");
     }
 
-    public String getEftVendorNumber() {
-        return textOf("#eftVendorNumber");
+    public Boolean getAcceptsEFT() {
+        return parseYesNoField("#acceptsEFT");
     }
 
     public String getRemittanceSequence() {

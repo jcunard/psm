@@ -79,9 +79,9 @@
     </span>
 </div>
 <div class="row">
-    <label>EFT Vendor Number</label>
+    <label>Do you accept EFT? (Electronic Funds Transfer)</label>
     <span class="floatL"><b>:</b></span>
-    <span id="eftVendorNumber">${requestScope['_05_eftVendorNo']}</span>
+    <span id="acceptsEFT">${requestScope['_05_acceptsEFT']}</span>
 </div>
 <div class="row">
     <label>Remittance Sequence</label>
